@@ -1,0 +1,93 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Set up display
+width = 800
+height = 600
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Geometry Dash Clone')
+
+# Define colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+# Set up FPS
+clock = pygame.time.Clock()
+
+# Define game variables
+gravity = 1
+player_width = 50
+player_height = 50
+player_x = 100
+player_y = height - player_height
+player_velocity_y = 0
+jump_height = -15
+
+# Define obstacles
+obstacle_width = 50
+obstacle_height = 50
+obstacle_speed = 5
+obstacles = []
+
+# Fonts
+font = pygame.font.SysFont("Arial", 30)
+
+# Spawn initial obstacles
+def spawn_obstacles():
+    global obstacles
+    for i in range(5):
+        obstacles.append([width + i * 300, height - obstacle_height])
+
+# Game loop
+def game_loop():
+    global player_y, player_velocity_y, obstacles
+
+    # Game state
+    running = True
+    score = 0
+
+    while running:
+        screen.fill(WHITE)
+
+        # Check events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player_y == height - player_height:
+                    player_velocity_y = jump_height  # Jumping
+
+        # Player gravity
+        player_velocity_y += gravity
+        player_y += player_velocity_y
+
+        # Prevent falling through the ground
+        if player_y > height - player_height:
+            player_y = height - player_height
+            player_velocity_y = 0
+
+        # Move obstacles
+        for obstacle in obstacles:
+            obstacle[0] -= obstacle_speed
+            if obstacle[0] < 0:
+                obstacles.remove(obstacle)
+                obstacles.append([width, height - obstacle_height])
+
+        # Collision detection
+        for obstacle in obstacles:
+            if player_x + player_width > obstacle[0] and player_x < obstacle[0] + obstacle_width:
+                if player_y + player_height > obstacle[1] and player_y < obstacle[1] + obstacle_height:
+                    running = False  # Game over
+
+        # Draw the player
+        pygame.draw.rect(screen, BLACK, (player_x, player_y, player_width, player_height))
+
+        # Draw obstacles
+        for obstacle in obstacles:
+            pygame.draw.rect(screen, RED, (obstacle[0], obstacle[1], obstacle_width, obstacle_height))
+
+        # Update
